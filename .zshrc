@@ -1,4 +1,3 @@
-
 alias zopen='open ~/.zshrc'
 alias zrefresh='source ~/.zshrc'
 
@@ -8,3 +7,5 @@ alias gpull='git pull origin'
 alias gpush='git push origin'
 alias gadd='git add .'
 alias gcommit='git commit -m'
+
+alias pgrestart='brew services restart postgresql@14'
