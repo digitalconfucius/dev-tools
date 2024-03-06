@@ -9,9 +9,23 @@ import shutil
 import sys
 import re
 
+def convert_string(input_string):
+    # Split the input string by hyphens
+    words = input_string.split("-")
+
+    # Create the CamelCase version
+    camel_case = "".join(word.capitalize() for word in words)
+    # Create the snake_case version
+    snake_case = "_".join(words)
+
+    return camel_case, snake_case
+
 def copy_rails_project(old_project_dir, new_project_dir):
     old_project_name = os.path.basename(old_project_dir)
     new_project_name = os.path.basename(new_project_dir)
+
+    old_camel_case, old_snake_case = convert_string(old_project_name)
+    new_camel_case, new_snake_case = convert_string(new_project_name)
 
     # Create a new directory for the copied project
     os.makedirs(new_project_dir, exist_ok=True)
@@ -30,7 +44,7 @@ def copy_rails_project(old_project_dir, new_project_dir):
     if os.path.exists(application_rb_path):
         with open(application_rb_path, "r") as file:
             content = file.read()
-        content = re.sub(r'module\s+(\w+)', f'module {new_project_name.capitalize()}', content)
+        content = content.replace(old_camel_case, new_camel_case)
         with open(application_rb_path, "w") as file:
             file.write(content)
     else:
@@ -41,7 +55,7 @@ def copy_rails_project(old_project_dir, new_project_dir):
     if os.path.exists(database_yml_path):
         with open(database_yml_path, "r") as file:
             content = file.read()
-        content = re.sub(rf'{old_project_name}_(\w+)', rf'{new_project_name}_\1', content)
+        content = re.sub(rf'{old_snake_case}_(\w+)', rf'{new_snake_case}_\1', content)
         with open(database_yml_path, "w") as file:
             file.write(content)
     else:
@@ -52,7 +66,7 @@ def copy_rails_project(old_project_dir, new_project_dir):
     if os.path.exists(cable_yml_path):
         with open(cable_yml_path, "r") as file:
             content = file.read()
-        content = content.replace(old_project_name, new_project_name)
+        content = re.sub(rf'{old_snake_case}_(\w+)', rf'{new_snake_case}_\1', content)
         with open(cable_yml_path, "w") as file:
             file.write(content)
     else:
@@ -63,7 +77,7 @@ def copy_rails_project(old_project_dir, new_project_dir):
     if os.path.exists(session_store_rb_path):
         with open(session_store_rb_path, "r") as file:
             content = file.read()
-        content = content.replace(old_project_name, new_project_name)
+        content = content.replace(old_camel_case, new_camel_case)
         with open(session_store_rb_path, "w") as file:
             file.write(content)
     else:
