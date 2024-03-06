@@ -4,6 +4,8 @@
 # Usage: 
 # python copy-rails.py /path/to/old/project /path/to/new/project
 
+# A way to double check if it's working: Initialize a new project, check it into Github, then copy over the old project and attempt to rename it. Manually review the diffs in Git.
+
 import os
 import shutil
 import sys
@@ -30,11 +32,11 @@ def copy_rails_project(old_project_dir, new_project_dir):
     # Create a new directory for the copied project
     os.makedirs(new_project_dir, exist_ok=True)
 
-    # Copy the contents of the existing project to the new directory, excluding the .git directory
-    def ignore_git(dir, files):
-        return ['.git'] if '.git' in files else []
+    # Copy the contents of the existing project to the new directory, excluding the .git directory and readme
+    def ignore_files(dir, files):
+        return ['.git', 'README.md'] if '.git' in files or 'README.md' in files else []
 
-    shutil.copytree(old_project_dir, new_project_dir, ignore=ignore_git, dirs_exist_ok=True)
+    shutil.copytree(old_project_dir, new_project_dir, ignore=ignore_files, dirs_exist_ok=True)
 
     # Navigate to the new project directory
     os.chdir(new_project_dir)
@@ -60,6 +62,17 @@ def copy_rails_project(old_project_dir, new_project_dir):
             file.write(content)
     else:
         print(f"Skipping {database_yml_path} as it doesn't exist.")
+
+    # Update the configuration in config/environments/production.rb
+    config_path = "config/environments/production.rb"
+    if os.path.exists(config_path):
+        with open(config_path, "r") as file:
+            content = file.read()
+        content = re.sub(rf'{old_snake_case}_(\w+)', rf'{new_snake_case}_\1', content)
+        with open(config_path, "w") as file:
+            file.write(content)
+    else:
+        print(f"Skipping {config_path} as it doesn't exist.")
 
     # Update the project name in the config/cable.yml file
     cable_yml_path = "config/cable.yml"
